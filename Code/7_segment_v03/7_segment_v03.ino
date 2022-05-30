@@ -26,9 +26,8 @@
 // +----------+---------+----+----+----+----+----+----+
 
 Adafruit_PWMServoDriver pwmM = Adafruit_PWMServoDriver(0x40);   //Create an object of Minute driver (No Adress Jumper)
-Adafruit_PWMServoDriver pwmH = Adafruit_PWMServoDriver(0x42);    //Create an object of Hour driver (A0 Address Jumper)
-Adafruit_PWMServoDriver pwmC = Adafruit_PWMServoDriver(0x41);    //Create an object of H of hour driver (A1 Address Jumper)
-
+Adafruit_PWMServoDriver pwmC = Adafruit_PWMServoDriver(0x41);    //Create an object of H of hour driver (A0 Address Jumper)
+Adafruit_PWMServoDriver pwmH = Adafruit_PWMServoDriver(0x42);    //Create an object of Hour driver (A1 Address Jumper)
 
 
 
@@ -39,9 +38,13 @@ const char* password = "your wifi password";
 
 //Creation of WIFI UDP object and NTP client
 WiFiUDP ntpUDP;
+
+
+//Define the server 
 EasyNTPClient timeClient(ntpUDP, "fr.pool.ntp.org");
 
 //Time change rules
+
 //TimeChangeRule myRule = {abbrev, week, dow, month, hour, offset};
 //myRule name of the rule
 //week : is the week of the month when the rule begins.
@@ -53,17 +56,17 @@ EasyNTPClient timeClient(ntpUDP, "fr.pool.ntp.org");
 //week: First, Second, Third, Fourth, Last
 //dow: Sun, Mon, Tue, Wed, Thu, Fri, Sat
 //month: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
-
-
 TimeChangeRule summerTime = {"RHEE", Last, Sun, Mar, 2, 120};
 TimeChangeRule winterTime = {"RHHE", Last, Sun, Oct, 3, 60};
 
 Timezone ConvertHour(summerTime, winterTime);
 
 
+long prevMillis = 0;
 
-int servoFrequency = 50;      //Set servo operating frequency
+int servoFrequency = 50;
 
+<<<<<<< HEAD
 int segmentHOff[14] = {400, 200, 200, 200, 400, 400, 400, 400, 200, 200, 200, 400, 400, 400}; //On positions for each HOUR servo
 int segmentHOn[14] = {200, 400, 400, 400, 200, 200, 200, 200, 400, 400, 400, 200, 200, 200}; //Off positions for each HOUR servo
 
@@ -72,11 +75,25 @@ int segmentCOn[7] = {200, 400, 400, 400, 200, 200, 200}; //Off positions for eac
 
 int segmentMOff[14] = {400, 200, 200, 200, 400, 400, 400, 400, 200, 200, 200, 400, 400, 400}; //On positions for each MINUTE servo
 int segmentMOn[14] = {200, 400, 400, 400, 200, 200, 200, 200, 400, 400, 400, 200, 200, 200}; //Off positions for each MINUTE servo
+=======
+int segmentHOff[14] = {400, 205, 205, 200, 395, 400, 405, 405, 200, 200, 210, 405, 400, 410}; //On positions for each HOUR servo
+int segmentHOn[14] = {200, 405, 405, 400, 195, 200, 205, 205, 400, 400, 410, 205, 200, 210}; //Off positions for each HOUR servo
+
+
+
+int segmentCOff[7] = {400, 200, 210, 210, 400, 410, 385}; //On positions for each H servo
+int segmentCOn[7] = {200, 400, 410, 410, 200, 210, 185}; //Off positions for each H servo
+
+
+
+int segmentMOff[14] = {415, 190, 192, 205, 380, 385, 415, 385, 200, 200, 190, 410, 400, 415}; //On positions for each MINUTE servo
+int segmentMOn[14] = {215, 390, 392, 405, 180, 185, 215, 185, 400, 400, 390, 210, 200, 215}; //Off positions for each MINUTE servo
+>>>>>>> Testing
 
 int digits[10][7] = {{1, 1, 1, 1, 1, 1, 0}, {0, 1, 1, 0, 0, 0, 0}, {1, 1, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 0, 1}, {0, 1, 1, 0, 0, 1, 1}, {1, 0, 1, 1, 0, 1, 1}, {1, 0, 1, 1, 1, 1, 1}, {1, 1, 1, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 0, 1, 1}}; //Position values for each digit
 
 int h; // Create a variable to store the current hour
-int m; // Create a cariable to store the current minut
+int m; // Create a variable to store the current minute
 
 int hourTens = 0;           //Create variables to store each 5 module numeral's to
 int hourUnits = 0;
@@ -90,9 +107,18 @@ int prevMinuteUnits = 8;
 
 int midOffset = 100;            //Amount by which adjacent segments to mid move away when required
 
+<<<<<<< HEAD
 void setup()
 {
   //Sarting the serial
+=======
+
+
+
+
+void setup(){
+  //Sarting serial protocol at 9600 bauds
+>>>>>>> Testing
   Serial.begin(9600);
 
 
@@ -116,7 +142,12 @@ void setup()
   pwmC.setPWMFreq(servoFrequency);
 
 
+<<<<<<< HEAD
   // Servo test
+=======
+  // Servo init
+  // The following sequence inshure that any 
+>>>>>>> Testing
   Serial.println("init servo");
   for (int i = 0 ; i <= 6 ; i++) { //Set all of the servos to on or up (88:88 displayed)
     // Debug when the H board is added change config to display 88 H 88
@@ -169,6 +200,7 @@ void setup()
     pwmC.setPWM(i, 0, segmentCOn[i]);
     delay(200);
   }
+<<<<<<< HEAD
 
 
 }
@@ -194,8 +226,37 @@ void loop()
   minuteTens = minute(Heure) / 10;
   minuteUnits = minute(Heure) % 10 ;
 
+=======
+  delay(1000);
+  pwmC.setPWM(0, 0, segmentCOff[0]);
+  pwmC.setPWM(3, 0, segmentCOff[3]);
+}
 
-  if (minuteUnits != prevMinuteUnits)   //If minute units has changed, update display
+void loop(){
+
+  if (millis() - prevMillis > 1000) { // Wait a second between eatch request
+    prevMillis = millis();
+
+    time_t Heure;
+    //Get time from server
+    Heure = ConvertHour.toLocal(timeClient.getUnixTime());
+
+
+    //Extract Units and Tens for Hour and Minute
+    h = hour(Heure);
+    m = minute(Heure);
+
+>>>>>>> Testing
+
+    hourTens = hour(Heure) / 10;
+    hourUnits = hour(Heure) % 10 ;
+
+
+    minuteTens = minute(Heure) / 10;
+    minuteUnits = minute(Heure) % 10 ;
+  }
+
+  if (minuteUnits != prevMinuteUnits) {  //If minute units has changed, update display
     updateDisplay();
 
   // Debug Only to be remouve for producion
@@ -206,7 +267,11 @@ void loop()
   prevMinuteTens = minuteTens;
   prevMinuteUnits = minuteUnits;
 
+<<<<<<< HEAD
   // Debug Only to be remouve for producion
+=======
+    // Debug Only to be remove for production
+>>>>>>> Testing
 
   Serial.println(hourTens);
   Serial.println(hourUnits);
@@ -214,8 +279,10 @@ void loop()
   Serial.println(minuteUnits);
   Serial.println ("");
 
-  delay(1000);
+  }
 }
+
+
 
 void updateDisplay ()
 {
@@ -249,7 +316,11 @@ void updateDisplay ()
 
 
 
+<<<<<<< HEAD
 void updateMid()//evite les contacts entre g et c e
+=======
+void updateMid() //Avoids contact between segments g and c e
+>>>>>>> Testing
 {
   if (digits[minuteUnits][6] != digits[prevMinuteUnits][6])   //Move adjacent segments for Minute units
   {
