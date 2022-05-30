@@ -25,9 +25,9 @@
 // |        3 | Ox43    |  1 |  1 |  0 |  0 |  0 |  0 |
 // +----------+---------+----+----+----+----+----+----+
 
-Adafruit_PWMServoDriver pwmH = Adafruit_PWMServoDriver(0x40);    //Create an object of Hour driver (No Adress Jumper)
-Adafruit_PWMServoDriver pwmM = Adafruit_PWMServoDriver(0x41);    //Create an object of Minute driver (A0 Address Jumper)
-Adafruit_PWMServoDriver pwmC = Adafruit_PWMServoDriver(0x42);    //Create an object of H of hour driver (A1 Address Jumper)
+Adafruit_PWMServoDriver pwmM = Adafruit_PWMServoDriver(0x40);   //Create an object of Minute driver (No Adress Jumper)
+Adafruit_PWMServoDriver pwmC = Adafruit_PWMServoDriver(0x41);    //Create an object of H of hour driver (A0 Address Jumper)
+Adafruit_PWMServoDriver pwmH = Adafruit_PWMServoDriver(0x42);    //Create an object of Hour driver (A1 Address Jumper)
 
 
 
@@ -39,9 +39,13 @@ const char* password = "813nV3nue@";
 
 //Creation of WIFI UDP object and NTP client
 WiFiUDP ntpUDP;
+
+
+//Define the server 
 EasyNTPClient timeClient(ntpUDP, "fr.pool.ntp.org");
 
 //Time change rules
+
 //TimeChangeRule myRule = {abbrev, week, dow, month, hour, offset};
 //myRule name of the rule
 //week : is the week of the month when the rule begins.
@@ -53,25 +57,33 @@ EasyNTPClient timeClient(ntpUDP, "fr.pool.ntp.org");
 //week: First, Second, Third, Fourth, Last
 //dow: Sun, Mon, Tue, Wed, Thu, Fri, Sat
 //month: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
-
-
 TimeChangeRule summerTime = {"RHEE", Last, Sun, Mar, 2, 120};
 TimeChangeRule winterTime = {"RHHE", Last, Sun, Oct, 3, 60};
 
 Timezone ConvertHour(summerTime, winterTime);
 
 
+long prevMillis = 0;
 
-int servoFrequency = 50;      //Set servo operating frequency
+int servoFrequency = 50;
 
-int segmentHOn[14] = {200, 200, 200, 400, 400, 400, 200, 200, 200, 200, 400, 400, 400, 400}; //On positions for each HOUR servo
-int segmentMOn[14] = {200, 200, 200, 400, 400, 400, 200, 200, 200, 200, 400, 400, 400, 400}; //On positions for each MINUTE servo
-int segmentHOff[14] = {400, 400, 400, 200, 200, 200, 400, 400, 400, 400, 200, 200, 200, 200}; //Off positions for each HOUR servo
-int segmentMOff[14] = {400, 400, 400, 200, 200, 200, 400, 400, 400, 400, 200, 200, 200, 200}; //Off positions for each MINUTE servo
-int digits[10][7] = {{1,1,1,1,1,1,0},{0,1,1,0,0,0,0},{1,1,0,1,1,0,1},{1,1,1,1,0,0,1},{0,1,1,0,0,1,1},{1,0,1,1,0,1,1},{1,0,1,1,1,1,1},{1,1,1,0,0,0,0},{1,1,1,1,1,1,1},{1,1,1,1,0,1,1}}; //Position values for each digit
+int segmentHOff[14] = {400, 205, 205, 200, 395, 400, 405, 405, 200, 200, 210, 405, 400, 410}; //On positions for each HOUR servo
+int segmentHOn[14] = {200, 405, 405, 400, 195, 200, 205, 205, 400, 400, 410, 205, 200, 210}; //Off positions for each HOUR servo
+
+
+
+int segmentCOff[7] = {400, 200, 210, 210, 400, 410, 385}; //On positions for each H servo
+int segmentCOn[7] = {200, 400, 410, 410, 200, 210, 185}; //Off positions for each H servo
+
+
+
+int segmentMOff[14] = {415, 190, 192, 205, 380, 385, 415, 385, 200, 200, 190, 410, 400, 415}; //On positions for each MINUTE servo
+int segmentMOn[14] = {215, 390, 392, 405, 180, 185, 215, 185, 400, 400, 390, 210, 200, 215}; //Off positions for each MINUTE servo
+
+int digits[10][7] = {{1, 1, 1, 1, 1, 1, 0}, {0, 1, 1, 0, 0, 0, 0}, {1, 1, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 0, 1}, {0, 1, 1, 0, 0, 1, 1}, {1, 0, 1, 1, 0, 1, 1}, {1, 0, 1, 1, 1, 1, 1}, {1, 1, 1, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 0, 1, 1}}; //Position values for each digit
 
 int h; // Create a variable to store the current hour
-int m; // Create a cariable to store the current minut
+int m; // Create a variable to store the current minute
 
 int hourTens = 0;           //Create variables to store each 5 module numeral's to
 int hourUnits = 0;
@@ -85,9 +97,12 @@ int prevMinuteUnits = 8;
 
 int midOffset = 100;            //Amount by which adjacent segments to mid move away when required
 
-void setup()
-{
-  //Sarting the serial 
+
+
+
+
+void setup(){
+  //Sarting serial protocol at 9600 bauds
   Serial.begin(9600);
 
 
@@ -110,40 +125,90 @@ void setup()
   pwmM.setPWMFreq(servoFrequency);
   pwmC.setPWMFreq(servoFrequency);
 
-  // Servo test
-  for (int i = 0 ; i <= 13 ; i++) //Set all of the servos to on or up (88:88 displayed)
-  // Debug when the H board is added change config to display 88 H 88
-  {
-    pwmH.setPWM(i, 0, segmentHOn[i]);
-    delay(1000);
-    pwmH.setPWM(i, 0, segmentHOff[i]);
-    delay(1000);
+
+  // Servo init
+  // The following sequence inshure that any 
+  Serial.println("init servo");
+  for (int i = 0 ; i <= 6 ; i++) { //Set all of the servos to on or up (88:88 displayed)
+    // Debug when the H board is added change config to display 88 H 88
+
+    pwmM.setPWM(i, 0, segmentMOff[i]);
+    pwmM.setPWM(i + 7, 0, segmentMOff[i + 7]);
+    delay(200);
   }
-  delay(2000);
+  for (int i = 0 ; i <= 6 ; i++) { //Set all of the servos to on or up (88:88 displayed)
+    // Debug when the H board is added change config to display 88 H 88
+
+    pwmH.setPWM(i, 0, segmentHOff[i]);
+    pwmH.setPWM(i + 7, 0, segmentHOff[i + 7]);
+    delay(200);
+  }
+  for (int i = 0 ; i <= 6 ; i++) { //Set all of the servos to on or up (88:88 displayed)
+    // Debug when the H board is added change config to display 88 H 88
+
+    pwmC.setPWM(i, 0, segmentCOff[i]);
+    delay(200);
+  }
+
+  delay(500);
+  pwmM.setPWM(6, 0, segmentMOn[6]);
+  pwmM.setPWM(13, 0, segmentMOn[13]);
+  pwmH.setPWM(6, 0, segmentHOn[6]);
+  pwmH.setPWM(13, 0, segmentHOn[13]);
+  pwmC.setPWM(6, 0, segmentCOn[6]);
+  delay(1000);
+
+
+
+  for (int i = 0 ; i <= 5 ; i++) { //Set all of the servos to on or up (88:88 displayed)
+    // Debug when the H board is added change config to display 88 H 88
+
+    pwmM.setPWM(i, 0, segmentMOn[i]);
+    pwmM.setPWM(i + 7, 0, segmentMOn[i + 7]);
+    delay(200);
+  }
+  for (int i = 0 ; i <= 5 ; i++) { //Set all of the servos to on or up (88:88 displayed)
+    // Debug when the H board is added change config to display 88 H 88
+
+    pwmH.setPWM(i, 0, segmentHOn[i]);
+    pwmH.setPWM(i + 7, 0, segmentHOn[i + 7]);
+    delay(200);
+  }
+  for (int i = 0 ; i <= 5 ; i++) { //Set all of the servos to on or up (88:88 displayed)
+    // Debug when the H board is added change config to display 88 H 88
+
+    pwmC.setPWM(i, 0, segmentCOn[i]);
+    delay(200);
+  }
+  delay(1000);
+  pwmC.setPWM(0, 0, segmentCOff[0]);
+  pwmC.setPWM(3, 0, segmentCOff[3]);
 }
 
-void loop()
-{
-  //NTP
-  //Variable de la fonction
-  time_t Heure;
+void loop(){
 
-  Heure = ConvertHour.toLocal(timeClient.getUnixTime());
+  if (millis() - prevMillis > 1000) { // Wait a second between eatch request
+    prevMillis = millis();
+
+    time_t Heure;
+    //Get time from server
+    Heure = ConvertHour.toLocal(timeClient.getUnixTime());
 
 
-  h = hour(Heure);
-  m = minute(Heure);
-  
+    //Extract Units and Tens for Hour and Minute
+    h = hour(Heure);
+    m = minute(Heure);
 
-  hourTens = hour(Heure) / 10;
-  hourUnits = hour(Heure) % 10 ; 
-  
-  
-  minuteTens = minute(Heure) / 10;
-  minuteUnits = minute(Heure) % 10 ; 
-  
 
-  if (minuteUnits != prevMinuteUnits)   //If minute units has changed, update display
+    hourTens = hour(Heure) / 10;
+    hourUnits = hour(Heure) % 10 ;
+
+
+    minuteTens = minute(Heure) / 10;
+    minuteUnits = minute(Heure) % 10 ;
+  }
+
+  if (minuteUnits != prevMinuteUnits) {  //If minute units has changed, update display
     updateDisplay();
 
     // Debug Only to be remouve for producion
@@ -154,7 +219,7 @@ void loop()
     prevMinuteTens = minuteTens;
     prevMinuteUnits = minuteUnits;
 
-    // Debug Only to be remouve for producion
+    // Debug Only to be remove for production
 
     Serial.println(hourTens);
     Serial.println(hourUnits);
@@ -162,8 +227,10 @@ void loop()
     Serial.println(minuteUnits);
     Serial.println ("");
 
-  delay(1000);
+  }
 }
+
+
 
 void updateDisplay ()
 {
@@ -197,14 +264,14 @@ void updateDisplay ()
 
 
 
-void updateMid()//evite les contacts entre g et c e 
+void updateMid() //Avoids contact between segments g and c e
 {
   if (digits[minuteUnits][6] != digits[prevMinuteUnits][6])   //Move adjacent segments for Minute units
   {
     if (digits[prevMinuteUnits][1] == 1)
-      pwmM.setPWM(1, 0, segmentMOn[1] + midOffset);
-    if (digits[prevMinuteUnits][6] == 1)                  //debug : + et - inversé 
-      pwmM.setPWM(5, 0, segmentMOn[5] - midOffset);
+      pwmM.setPWM(1, 0, segmentMOn[1] - midOffset);
+    if (digits[prevMinuteUnits][6] == 1)
+      pwmM.setPWM(5, 0, segmentMOn[5] + midOffset);
   }
   delay(100);
   if (digits[minuteUnits][6] == 1)
@@ -214,9 +281,9 @@ void updateMid()//evite les contacts entre g et c e
   if (digits[minuteTens][6] != digits[prevMinuteTens][6])   //Move adjacent segments for Minute tens
   {
     if (digits[prevMinuteTens][1] == 1)
-      pwmM.setPWM(8, 0, segmentMOn[8] + midOffset);
-    if (digits[prevMinuteTens][6] == 1)               //debug : + et - inversé 
-      pwmM.setPWM(12, 0, segmentMOn[12] - midOffset);
+      pwmM.setPWM(8, 0, segmentMOn[8] - midOffset);
+    if (digits[prevMinuteTens][6] == 1)
+      pwmM.setPWM(12, 0, segmentMOn[12] + midOffset);
   }
   delay(100);
   if (digits[minuteTens][6] == 1)
@@ -226,9 +293,9 @@ void updateMid()//evite les contacts entre g et c e
   if (digits[hourUnits][6] != digits[prevHourUnits][6])   //Move adjacent segments for Hour units
   {
     if (digits[prevHourUnits][1] == 1)
-      pwmH.setPWM(1, 0, segmentHOn[1] + midOffset);
-    if (digits[prevHourUnits][6] == 1)           //debug : + et - inversé 
-      pwmH.setPWM(5, 0, segmentHOn[5] - midOffset);
+      pwmH.setPWM(1, 0, segmentHOn[1] - midOffset);
+    if (digits[prevHourUnits][6] == 1)
+      pwmH.setPWM(5, 0, segmentHOn[5] + midOffset);
   }
   delay(100);
   if (digits[hourUnits][6] == 1)
@@ -238,9 +305,9 @@ void updateMid()//evite les contacts entre g et c e
   if (digits[hourTens][6] != digits[prevHourTens][6])   //Move adjacent segments for Hour tens
   {
     if (digits[prevHourTens][1] == 1)
-      pwmH.setPWM(8, 0, segmentHOn[8] + midOffset);
-    if (digits[prevHourTens][6] == 1)                   //debug : + et - inversé 
-      pwmH.setPWM(12, 0, segmentHOn[12] - midOffset);
+      pwmH.setPWM(8, 0, segmentHOn[8] - midOffset);
+    if (digits[prevHourTens][6] == 1)
+      pwmH.setPWM(12, 0, segmentHOn[12] + midOffset);
   }
   delay(100);
   if (digits[hourTens][6] == 1)
