@@ -66,16 +66,6 @@ long prevMillis = 0;
 
 int servoFrequency = 50;
 
-<<<<<<< HEAD
-int segmentHOff[14] = {400, 200, 200, 200, 400, 400, 400, 400, 200, 200, 200, 400, 400, 400}; //On positions for each HOUR servo
-int segmentHOn[14] = {200, 400, 400, 400, 200, 200, 200, 200, 400, 400, 400, 200, 200, 200}; //Off positions for each HOUR servo
-
-int segmentCOff[7] = {400, 200, 200, 200, 400, 400, 400}; //On positions for each H servo
-int segmentCOn[7] = {200, 400, 400, 400, 200, 200, 200}; //Off positions for each H servo
-
-int segmentMOff[14] = {400, 200, 200, 200, 400, 400, 400, 400, 200, 200, 200, 400, 400, 400}; //On positions for each MINUTE servo
-int segmentMOn[14] = {200, 400, 400, 400, 200, 200, 200, 200, 400, 400, 400, 200, 200, 200}; //Off positions for each MINUTE servo
-=======
 int segmentHOff[14] = {400, 205, 205, 200, 395, 400, 405, 405, 200, 200, 210, 405, 400, 410}; //On positions for each HOUR servo
 int segmentHOn[14] = {200, 405, 405, 400, 195, 200, 205, 205, 400, 400, 410, 205, 200, 210}; //Off positions for each HOUR servo
 
@@ -88,7 +78,6 @@ int segmentCOn[7] = {200, 400, 410, 410, 200, 210, 185}; //Off positions for eac
 
 int segmentMOff[14] = {415, 190, 192, 205, 380, 385, 415, 385, 200, 200, 190, 410, 400, 415}; //On positions for each MINUTE servo
 int segmentMOn[14] = {215, 390, 392, 405, 180, 185, 215, 185, 400, 400, 390, 210, 200, 215}; //Off positions for each MINUTE servo
->>>>>>> Testing
 
 int digits[10][7] = {{1, 1, 1, 1, 1, 1, 0}, {0, 1, 1, 0, 0, 0, 0}, {1, 1, 0, 1, 1, 0, 1}, {1, 1, 1, 1, 0, 0, 1}, {0, 1, 1, 0, 0, 1, 1}, {1, 0, 1, 1, 0, 1, 1}, {1, 0, 1, 1, 1, 1, 1}, {1, 1, 1, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 0, 1, 1}}; //Position values for each digit
 
@@ -107,18 +96,12 @@ int prevMinuteUnits = 8;
 
 int midOffset = 100;            //Amount by which adjacent segments to mid move away when required
 
-<<<<<<< HEAD
-void setup()
-{
-  //Sarting the serial
-=======
 
 
 
 
 void setup(){
   //Sarting serial protocol at 9600 bauds
->>>>>>> Testing
   Serial.begin(9600);
 
 
@@ -142,12 +125,8 @@ void setup(){
   pwmC.setPWMFreq(servoFrequency);
 
 
-<<<<<<< HEAD
-  // Servo test
-=======
   // Servo init
-  // The following sequence inshure that any 
->>>>>>> Testing
+  // The following sequence will ensure no collisions can occur with the middle segment
   Serial.println("init servo");
   for (int i = 0 ; i <= 6 ; i++) { //Set all of the servos to on or up (88:88 displayed)
     // Debug when the H board is added change config to display 88 H 88
@@ -200,33 +179,6 @@ void setup(){
     pwmC.setPWM(i, 0, segmentCOn[i]);
     delay(200);
   }
-<<<<<<< HEAD
-
-
-}
-
-void loop()
-{
-  //NTP
-  time_t Heure;
-
-  //Get time from server
-  Heure = ConvertHour.toLocal(timeClient.getUnixTime());
-
-
-  //Extract Units and Tens for Hour and Minute
-  h = hour(Heure);
-  m = minute(Heure);
-
-
-  hourTens = hour(Heure) / 10;
-  hourUnits = hour(Heure) % 10 ;
-
-
-  minuteTens = minute(Heure) / 10;
-  minuteUnits = minute(Heure) % 10 ;
-
-=======
   delay(1000);
   pwmC.setPWM(0, 0, segmentCOff[0]);
   pwmC.setPWM(3, 0, segmentCOff[3]);
@@ -246,7 +198,6 @@ void loop(){
     h = hour(Heure);
     m = minute(Heure);
 
->>>>>>> Testing
 
     hourTens = hour(Heure) / 10;
     hourUnits = hour(Heure) % 10 ;
@@ -267,11 +218,7 @@ void loop(){
   prevMinuteTens = minuteTens;
   prevMinuteUnits = minuteUnits;
 
-<<<<<<< HEAD
-  // Debug Only to be remouve for producion
-=======
     // Debug Only to be remove for production
->>>>>>> Testing
 
   Serial.println(hourTens);
   Serial.println(hourUnits);
@@ -316,11 +263,7 @@ void updateDisplay ()
 
 
 
-<<<<<<< HEAD
-void updateMid()//evite les contacts entre g et c e
-=======
 void updateMid() //Avoids contact between segments g and c e
->>>>>>> Testing
 {
   if (digits[minuteUnits][6] != digits[prevMinuteUnits][6])   //Move adjacent segments for Minute units
   {
