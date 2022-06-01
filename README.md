@@ -16,3 +16,5 @@
 - 📖 Better documentation
 
 The goal of this project is to create a simple 7 segments style mechanical clock. The segments are individualy controlled using SG90 servos. The time is automaticaly fetch from the an NTP server on the internet.
+
+## The [Wiki](https://github.com/Redblockmasteur/AdiClock/wiki) with contains all the necessary info to build your very own AdiClock
