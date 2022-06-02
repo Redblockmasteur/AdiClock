@@ -15,7 +15,7 @@
 - 👨‍💻 Web portal to set up Wifi
 - 📖 Better documentation
 
-The goal of this project is to create a simple 7 segments style mechanical clock. The segments are individually controlled using SG90 servos. The time is automatically fetch from the an NTP server on the internet.
+The goal of this project is to create a simple 7 segment style mechanical clock. The segments are individually controlled using SG90 servos. The time is automatically fetched from the an NTP server on the internet. Cool render
 ![Cool render](https://github.com/Redblockmasteur/AdiClock/blob/main/img/full_render_3.png)
 
 ## The [Wiki](https://github.com/Redblockmasteur/AdiClock/wiki) with contains all the necessary info to build your very own AdiClock
